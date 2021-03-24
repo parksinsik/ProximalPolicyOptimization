@@ -1,5 +1,5 @@
 # This is the TensorFlow version of the PyTorch code below
-# https://github.com/seungeunrho/minimalRL
+# https://github.com/seungeunrho/minimalRL/blob/master/ppo.py
 
 
 import threading
