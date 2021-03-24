@@ -158,7 +158,7 @@ def main(n_episode=1000, print_interval=20):
             ppo.train()
 
         if i != 0 and i % print_interval == 0:
-            print("Episode: %d  Avg Score: %.2f" % (i, score / print_interval))
+            print("Episode: %d  Avg Score: %.2f" % (i, score / 100.0))
             
             scores.append(score)
             score = 0.0
