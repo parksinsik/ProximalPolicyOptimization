@@ -12,6 +12,50 @@ from tensorflow.keras.losses import Huber
 from tensorflow.keras.optimizers import Adam
 
 
+def main(n_episode=1000, print_interval=20):
+
+    ppo = PPO()
+    env = gym.make("CartPole-v1")
+    score = 0.0
+    scores = []
+
+    for i in range(n_episode):
+        sample = env.reset()
+        sample = np.array(sample).reshape(-1, ppo.n_variable)
+        done = False
+
+        while not done:
+            for j in range(ppo.horizon):
+                probs,_ = ppo.model(sample)
+                probs = probs.numpy()[0]
+
+                action = np.random.choice([0, 1], size=1, p=probs)[0]
+                prob = probs[action]
+
+                sample_next, reward, done, info = env.step(action)
+                sample_next = np.array(sample_next).reshape(-1, ppo.n_variable)
+
+                ppo.put_data((sample, sample_next, prob, action, reward / 100.0, done))
+                sample = sample_next
+
+                score += reward
+
+                if done:
+                    break
+
+            ppo.train()
+
+        if i != 0 and i % print_interval == 0:
+            print("Episode: %d  Avg Score: %.2f" % (i, score / print_interval))
+            
+            scores.append(score)
+            score = 0.0
+
+    env.close()
+    
+    return scores
+
+
 class PPO:
 
     def __init__(self, n_variable=4, lr=0.0005, gamma=0.98, lmbda=0.95, epsilon=0.1, epoch=3, horizon=20):
@@ -122,50 +166,6 @@ class PPO:
 
                 gradients = tape.gradient(loss, self.model.trainable_variables)
                 self.optimizer.apply_gradients(zip(gradients, self.model.trainable_variables))
-
-
-def main(n_episode=1000, print_interval=20):
-
-    ppo = PPO()
-    env = gym.make("CartPole-v1")
-    score = 0.0
-    scores = []
-
-    for i in range(n_episode):
-        sample = env.reset()
-        sample = np.array(sample).reshape(-1, ppo.n_variable)
-        done = False
-
-        while not done:
-            for j in range(ppo.horizon):
-                probs,_ = ppo.model(sample)
-                probs = probs.numpy()[0]
-
-                action = np.random.choice([0, 1], size=1, p=probs)[0]
-                prob = probs[action]
-
-                sample_next, reward, done, info = env.step(action)
-                sample_next = np.array(sample_next).reshape(-1, ppo.n_variable)
-
-                ppo.put_data((sample, sample_next, prob, action, reward / 100.0, done))
-                sample = sample_next
-
-                score += reward
-
-                if done:
-                    break
-
-            ppo.train()
-
-        if i != 0 and i % print_interval == 0:
-            print("Episode: %d  Avg Score: %.2f" % (i, score / print_interval))
-            
-            scores.append(score)
-            score = 0.0
-
-    env.close()
-    
-    return scores
 
 
 if __name__ == "__main__":
