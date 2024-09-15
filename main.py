@@ -2,6 +2,7 @@
 # https://github.com/seungeunrho/minimalRL/blob/master/ppo.py
 
 
+import gym
 import threading
 import numpy as np
 import pandas as pd
@@ -71,7 +72,7 @@ class PPO:
         self.model = None
         self.init_model()
         self.smooth_l1_loss = Huber()
-        self.optimizer = Adam(lr=self.lr)
+        self.optimizer = Adam(learning_rate=self.lr)
 
         self.data = []
 
@@ -126,7 +127,6 @@ class PPO:
 
         for i in range(self.epoch):
             with tf.GradientTape() as tape:
-                tape.watch(self.model.trainable_variables)
 
                 pi, v = self.model(samples)
                 _, v_next = self.model(samples_next)
